@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Celestial Tapestries</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher&display=swap');
+  
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #050508;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+  .back-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffd700;
+    text-decoration: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1px solid #ffd700;
+    transition: all 0.3s ease;
+    z-index: 100;
+    background: rgba(5, 5, 8, 0.9);
+  }
+  .back-link:hover {
+    background: #ffd700;
+    color: #050508;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  .title {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffd700;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    z-index: 100;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+  .subtitle {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Philosopher', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 215, 0, 0.5);
+    letter-spacing: 4px;
+    z-index: 100;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<a href="logo.html" class="back-link">Return</a>
+<div class="title">Constellations</div>
+<div class="subtitle">The Stories Written in Stars</div>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let W, H, cx, cy;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2;
+  cy = H / 2;
+  initParticles();
+}
+
+// Mouse tracking
+let mouse = { x: -1000, y: -1000 };
+const EXPLOSION_RADIUS = 120;
+const EXPLOSION_FORCE = 18;
+
+canvas.addEventListener("mousemove", e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+canvas.addEventListener("mouseleave", () => {
+  mouse.x = -1000;
+  mouse.y = -1000;
+});
+
+const particles = [];
+const constellationLines = [];
+let time = 0;
+
+// Constellation patterns (simplified)
+const constellations = [
+  // Orion
+  { stars: [{x: 0.3, y: 0.3}, {x: 0.32, y: 0.35}, {x: 0.34, y: 0.4}, {x: 0.28, y: 0.38}, {x: 0.36, y: 0.32}], lines: [[0,1],[1,2],[1,3],[0,4]] },
+  // Big Dipper
+  { stars: [{x: 0.7, y: 0.25}, {x: 0.73, y: 0.27}, {x: 0.76, y: 0.26}, {x: 0.78, y: 0.28}, {x: 0.8, y: 0.32}, {x: 0.82, y: 0.36}, {x: 0.79, y: 0.38}], lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,3]] },
+  // Cassiopeia
+  { stars: [{x: 0.15, y: 0.6}, {x: 0.18, y: 0.55}, {x: 0.22, y: 0.58}, {x: 0.26, y: 0.53}, {x: 0.3, y: 0.56}], lines: [[0,1],[1,2],[2,3],[3,4]] },
+];
+
+function initParticles() {
+  particles.length = 0;
+  
+  // Grid of stars
+  const spacing = 35;
+  const cols = Math.ceil(W / spacing) + 2;
+  const rows = Math.ceil(H / spacing) + 2;
+  
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const baseX = i * spacing + (Math.random() - 0.5) * 15;
+      const baseY = j * spacing + (Math.random() - 0.5) * 15;
+      
+      const isBright = Math.random() < 0.1;
+      
+      particles.push({
+        baseX,
+        baseY,
+        size: isBright ? 2 + Math.random() * 2 : 1 + Math.random() * 1.5,
+        hue: 40 + Math.random() * 20,
+        opacity: isBright ? 0.7 + Math.random() * 0.3 : 0.2 + Math.random() * 0.3,
+        vx: 0,
+        vy: 0,
+        offsetX: 0,
+        offsetY: 0,
+        twinkle: Math.random() * Math.PI * 2,
+        twinkleSpeed: 0.02 + Math.random() * 0.03
+      });
+    }
+  }
+}
+
+function draw() {
+  // Deep space background
+  ctx.fillStyle = "#030308";
+  ctx.fillRect(0, 0, W, H);
+  
+  // Subtle nebula glow
+  const nebulaGradient = ctx.createRadialGradient(cx * 0.7, cy * 0.6, 0, cx * 0.7, cy * 0.6, 400);
+  nebulaGradient.addColorStop(0, "rgba(100, 50, 150, 0.1)");
+  nebulaGradient.addColorStop(1, "transparent");
+  ctx.fillStyle = nebulaGradient;
+  ctx.fillRect(0, 0, W, H);
+  
+  const nebulaGradient2 = ctx.createRadialGradient(cx * 1.3, cy * 1.2, 0, cx * 1.3, cy * 1.2, 300);
+  nebulaGradient2.addColorStop(0, "rgba(50, 100, 150, 0.08)");
+  nebulaGradient2.addColorStop(1, "transparent");
+  ctx.fillStyle = nebulaGradient2;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Draw constellation lines first
+  ctx.strokeStyle = "rgba(255, 215, 0, 0.15)";
+  ctx.lineWidth = 1;
+  
+  constellations.forEach(constellation => {
+    constellation.lines.forEach(line => {
+      const star1 = constellation.stars[line[0]];
+      const star2 = constellation.stars[line[1]];
+      
+      ctx.beginPath();
+      ctx.moveTo(star1.x * W, star1.y * H);
+      ctx.lineTo(star2.x * W, star2.y * H);
+      ctx.stroke();
+    });
+  });
+  
+  // Draw constellation stars (brighter)
+  constellations.forEach(constellation => {
+    constellation.stars.forEach(star => {
+      const twinkle = 0.7 + Math.sin(time * 2 + star.x * 10) * 0.3;
+      
+      ctx.beginPath();
+      ctx.arc(star.x * W, star.y * H, 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 220, 150, ${twinkle})`;
+      ctx.shadowColor = "#ffd700";
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+  });
+  
+  // Update and draw particle stars
+  particles.forEach(p => {
+    const waveX = Math.sin(time * 0.5 + p.twinkle) * 3;
+    const waveY = Math.cos(time * 0.5 + p.twinkle) * 3;
+    
+    const targetX = p.baseX + waveX;
+    const targetY = p.baseY + waveY;
+    
+    const actualX = targetX + p.offsetX;
+    const actualY = targetY + p.offsetY;
+    
+    const dx = actualX - mouse.x;
+    const dy = actualY - mouse.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < EXPLOSION_RADIUS && dist > 0) {
+      const force = (1 - dist / EXPLOSION_RADIUS) * EXPLOSION_FORCE;
+      p.vx += (dx / dist) * force;
+      p.vy += (dy / dist) * force;
+    }
+    
+    p.offsetX += p.vx;
+    p.offsetY += p.vy;
+    p.vx *= 0.88;
+    p.vy *= 0.88;
+    p.offsetX *= 0.92;
+    p.offsetY *= 0.92;
+    
+    const finalX = targetX + p.offsetX;
+    const finalY = targetY + p.offsetY;
+    
+    // Twinkle effect
+    p.twinkle += p.twinkleSpeed;
+    const twinkle = 0.5 + Math.sin(p.twinkle) * 0.5;
+    
+    ctx.beginPath();
+    ctx.arc(finalX, finalY, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue}, 50%, 80%, ${p.opacity * twinkle})`;
+    ctx.fill();
+  });
+  
+  // Mythological text hints
+  ctx.font = "italic 14px 'Philosopher', sans-serif";
+  ctx.fillStyle = "rgba(255, 215, 0, 0.3)";
+  ctx.textAlign = "center";
+  
+  ctx.fillText("Orion the Hunter", 0.31 * W, 0.48 * H);
+  ctx.fillText("Ursa Major", 0.76 * W, 0.42 * H);
+  ctx.fillText("Cassiopeia the Queen", 0.22 * W, 0.68 * H);
+  
+  time += 0.02;
+  requestAnimationFrame(draw);
+}
+
+resize();
+window.addEventListener("resize", resize);
+draw();
+</script>
+
+</body>
+</html>

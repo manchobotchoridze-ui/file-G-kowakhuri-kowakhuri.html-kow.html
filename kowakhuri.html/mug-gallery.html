@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vessels of the Gods</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    min-height: 100%;
+    background: linear-gradient(180deg, #0a0a15 0%, #0d0d18 50%, #050508 100%);
+    font-family: 'Cinzel', serif;
+    color: #fff;
+  }
+  .back-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffd700;
+    text-decoration: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1px solid #ffd700;
+    transition: all 0.3s ease;
+    z-index: 100;
+    background: rgba(0,0,0,0.9);
+  }
+  .back-link:hover {
+    background: #ffd700;
+    color: #0a0a12;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  header {
+    text-align: center;
+    padding: 80px 20px 60px;
+  }
+  header h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: #ffd700;
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+    margin-bottom: 15px;
+  }
+  header p {
+    font-family: 'Philosopher', sans-serif;
+    font-size: 16px;
+    color: rgba(255, 215, 0, 0.5);
+    font-style: italic;
+    letter-spacing: 3px;
+  }
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 40px;
+    padding: 40px 60px 100px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .vessel-card {
+    background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(15, 15, 25, 0.9));
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+  }
+  .vessel-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.3);
+  }
+  .vessel-image {
+    height: 280px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+  }
+  .vessel-info {
+    padding: 30px;
+    text-align: center;
+  }
+  .vessel-deity {
+    font-size: 12px;
+    color: #9370DB;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+  .vessel-name {
+    font-size: 22px;
+    color: #ffd700;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+  }
+  .vessel-description {
+    font-family: 'Philosopher', sans-serif;
+    font-size: 14px;
+    color: #888;
+    line-height: 1.8;
+    font-style: italic;
+  }
+  .vessel-power {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #50C878;
+    letter-spacing: 1px;
+  }
+  
+  /* Vessel Styles */
+  .vessel { position: relative; }
+  
+  /* Zeus Goblet */
+  .vessel-zeus .cup {
+    width: 80px;
+    height: 100px;
+    background: linear-gradient(180deg, #FFD700 0%, #DAA520 50%, #B8860B 100%);
+    border-radius: 10px 10px 40px 40px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset -10px 0 20px rgba(0,0,0,0.2);
+  }
+  .vessel-zeus .stem {
+    width: 20px;
+    height: 40px;
+    background: linear-gradient(90deg, #B8860B, #DAA520, #B8860B);
+    margin: 0 auto;
+  }
+  .vessel-zeus .base {
+    width: 70px;
+    height: 15px;
+    background: linear-gradient(180deg, #DAA520, #B8860B);
+    border-radius: 5px;
+    margin: 0 auto;
+  }
+  .vessel-zeus .lightning {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 30px;
+    color: #87CEEB;
+    text-shadow: 0 0 20px #87CEEB;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; text-shadow: 0 0 30px #fff; }
+  }
+  
+  /* Dionysus Kylix */
+  .vessel-dionysus .bowl {
+    width: 120px;
+    height: 50px;
+    background: linear-gradient(180deg, #8B0000 0%, #4A0000 100%);
+    border-radius: 0 0 60px 60px;
+    position: relative;
+    box-shadow: inset 0 -10px 20px rgba(0,0,0,0.3);
+  }
+  .vessel-dionysus .wine {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    right: 15px;
+    height: 20px;
+    background: linear-gradient(180deg, #722F37 0%, #4A0000 100%);
+    border-radius: 50%;
+  }
+  .vessel-dionysus .handle {
+    position: absolute;
+    top: -5px;
+    width: 30px;
+    height: 40px;
+    border: 8px solid #4A0000;
+    border-radius: 0 0 20px 20px;
+  }
+  .vessel-dionysus .handle.left { left: -25px; }
+  .vessel-dionysus .handle.right { right: -25px; }
+  .vessel-dionysus .foot {
+    width: 40px;
+    height: 30px;
+    background: linear-gradient(180deg, #4A0000, #2A0000);
+    margin: 0 auto;
+    border-radius: 0 0 5px 5px;
+  }
+  
+  /* Athena Kantharos */
+  .vessel-athena .cup {
+    width: 70px;
+    height: 90px;
+    background: linear-gradient(135deg, #C0C0C0, #A0A0A0, #808080);
+    border-radius: 5px 5px 35px 35px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
+  }
+  .vessel-athena .handle {
+    position: absolute;
+    top: 10px;
+    width: 25px;
+    height: 70px;
+    border: 6px solid #A0A0A0;
+    border-left: none;
+    border-radius: 0 30px 30px 0;
+  }
+  .vessel-athena .handle.left { left: -20px; transform: scaleX(-1); }
+  .vessel-athena .handle.right { right: -20px; }
+  .vessel-athena .owl {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+  }
+  .vessel-athena .base {
+    width: 50px;
+    height: 20px;
+    background: linear-gradient(180deg, #A0A0A0, #606060);
+    margin: 0 auto;
+    border-radius: 0 0 10px 10px;
+  }
+  
+  /* Poseidon Rhyton */
+  .vessel-poseidon .horn {
+    width: 40px;
+    height: 120px;
+    background: linear-gradient(180deg, #4682B4 0%, #1E4D6B 50%, #0D3B4F 100%);
+    border-radius: 20px 20px 50% 50%;
+    transform: rotate(-20deg);
+    position: relative;
+    box-shadow: 0 0 25px rgba(70, 130, 180, 0.4);
+  }
+  .vessel-poseidon .rim {
+    position: absolute;
+    top: 0;
+    left: -5px;
+    width: 50px;
+    height: 15px;
+    background: linear-gradient(90deg, #FFD700, #DAA520);
+    border-radius: 10px;
+  }
+  .vessel-poseidon .waves {
+    position: absolute;
+    bottom: 30px;
+    left: 5px;
+    font-size: 20px;
+    color: #87CEEB;
+    text-shadow: 0 0 10px #87CEEB;
+  }
+  
+  /* Hades Skyphos */
+  .vessel-hades .cup {
+    width: 90px;
+    height: 70px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    border-radius: 10px 10px 35px 35px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(128, 0, 128, 0.3), inset 0 0 20px rgba(128, 0, 128, 0.2);
+    border: 2px solid #4a004a;
+  }
+  .vessel-hades .handle {
+    position: absolute;
+    top: 10px;
+    width: 20px;
+    height: 50px;
+    border: 5px solid #2a002a;
+    border-left: none;
+    border-radius: 0 20px 20px 0;
+  }
+  .vessel-hades .handle.left { left: -15px; transform: scaleX(-1); }
+  .vessel-hades .handle.right { right: -15px; }
+  .vessel-hades .souls {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    opacity: 0.7;
+    animation: float 3s infinite ease-in-out;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+  }
+  .vessel-hades .base {
+    width: 60px;
+    height: 15px;
+    background: #1a001a;
+    margin: 0 auto;
+    border-radius: 0 0 5px 5px;
+  }
+  
+  /* Apollo Phiale */
+  .vessel-apollo .bowl {
+    width: 110px;
+    height: 35px;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+  }
+  .vessel-apollo .center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: radial-gradient(circle, #fff 0%, #FFD700 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 20px #fff;
+  }
+  .vessel-apollo .rays {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    color: #FFD700;
+    letter-spacing: 5px;
+  }
+</style>
+</head>
+<body>
+
+<a href="mug.html" class="back-link">Return</a>
+
+<header>
+  <h1>Vessels of the Gods</h1>
+  <p>Sacred chalices from the divine realms of Olympus</p>
+</header>
+
+<div class="gallery">
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-zeus">
+        <div class="cup">
+          <span class="lightning">⚡</span>
+        </div>
+        <div class="stem"></div>
+        <div class="base"></div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">King of Olympus</div>
+      <h3 class="vessel-name">Goblet of Zeus</h3>
+      <p class="vessel-description">Forged from celestial gold by Hephaestus himself. When filled with ambrosia, lightning dances within its depths, granting the drinker dominion over storms.</p>
+      <div class="vessel-power">Power: Command Thunder</div>
+    </div>
+  </div>
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-dionysus">
+        <div class="bowl">
+          <div class="wine"></div>
+          <div class="handle left"></div>
+          <div class="handle right"></div>
+        </div>
+        <div class="foot"></div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">God of Wine</div>
+      <h3 class="vessel-name">Kylix of Dionysus</h3>
+      <p class="vessel-description">This shallow drinking cup never empties. The sacred wine within induces divine ecstasy and reveals hidden truths to those who partake in its mysteries.</p>
+      <div class="vessel-power">Power: Eternal Revelry</div>
+    </div>
+  </div>
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-athena">
+        <div class="cup">
+          <div class="handle left"></div>
+          <div class="handle right"></div>
+          <span class="owl">🦉</span>
+        </div>
+        <div class="base"></div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">Goddess of Wisdom</div>
+      <h3 class="vessel-name">Kantharos of Athena</h3>
+      <p class="vessel-description">Silver vessel blessed by the owl-eyed goddess. Drinking from it bestows strategic brilliance and clarity of thought even in the chaos of battle.</p>
+      <div class="vessel-power">Power: Divine Wisdom</div>
+    </div>
+  </div>
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-poseidon">
+        <div class="horn">
+          <div class="rim"></div>
+          <span class="waves">〰️</span>
+        </div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">Lord of the Seas</div>
+      <h3 class="vessel-name">Rhyton of Poseidon</h3>
+      <p class="vessel-description">Carved from the horn of a sea serpent, this vessel channels the power of the deep. It can summon tidal waves or calm the most violent storms at sea.</p>
+      <div class="vessel-power">Power: Ocean's Fury</div>
+    </div>
+  </div>
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-hades">
+        <div class="cup">
+          <div class="handle left"></div>
+          <div class="handle right"></div>
+          <span class="souls">👻</span>
+        </div>
+        <div class="base"></div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">King of the Underworld</div>
+      <h3 class="vessel-name">Skyphos of Hades</h3>
+      <p class="vessel-description">Obsidian vessel that draws its power from the River Styx. Those who drink from it can commune with the dead and glimpse the shadows of fate.</p>
+      <div class="vessel-power">Power: Death's Whisper</div>
+    </div>
+  </div>
+  
+  <div class="vessel-card">
+    <div class="vessel-image">
+      <div class="vessel vessel-apollo">
+        <div class="rays">✦ ✦ ✦</div>
+        <div class="bowl">
+          <div class="center"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vessel-info">
+      <div class="vessel-deity">God of Light</div>
+      <h3 class="vessel-name">Phiale of Apollo</h3>
+      <p class="vessel-description">A libation bowl of pure sunlight made solid. Used in sacred rituals, it can heal any wound and purify any poison when touched by dawn's first light.</p>
+      <div class="vessel-power">Power: Solar Healing</div>
+    </div>
+  </div>
+  
+</div>
+
+</body>
+</html>

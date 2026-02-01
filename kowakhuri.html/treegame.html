@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yggdrasil - The World Tree</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Cinzel', serif;
+  }
+  canvas {
+    display: block;
+  }
+  .back-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #50C878;
+    text-decoration: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid #50C878;
+    transition: all 0.3s ease;
+    z-index: 100;
+    background: rgba(0,0,0,0.8);
+  }
+  .back-link:hover {
+    background: #50C878;
+    color: #000;
+    box-shadow: 0 0 20px rgba(80, 200, 120, 0.5);
+  }
+  .game-ui {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    text-align: right;
+  }
+  .realm-display {
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 2px;
+  }
+  .essence-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  .realm-level {
+    font-size: 16px;
+    color: #50C878;
+    margin-top: 5px;
+    letter-spacing: 1px;
+  }
+  .lives {
+    margin-top: 10px;
+  }
+  .life {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background: radial-gradient(circle, #ffd700, #ff8c00);
+    border-radius: 50%;
+    margin-left: 5px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+  .menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+  }
+  .menu h1 {
+    font-size: 52px;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+    letter-spacing: 10px;
+    margin-bottom: 10px;
+  }
+  .menu .subtitle {
+    font-family: 'Philosopher', sans-serif;
+    font-size: 18px;
+    color: #50C878;
+    margin-bottom: 40px;
+    font-style: italic;
+    letter-spacing: 3px;
+  }
+  .menu p {
+    font-family: 'Philosopher', sans-serif;
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .menu .lore {
+    max-width: 500px;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    font-style: italic;
+  }
+  .start-btn {
+    padding: 15px 50px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    background: transparent;
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Cinzel', serif;
+  }
+  .start-btn:hover {
+    background: #ffd700;
+    color: #000;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<a href="kow.html" class="back-link">Return to Olympus</a>
+
+<div class="game-ui" id="gameUI">
+  <div class="realm-display">DIVINE ESSENCE</div>
+  <div class="essence-value" id="scoreValue">0</div>
+  <div class="realm-level">Realm: <span id="treeLevel">Midgard</span></div>
+  <div class="lives" id="lives"></div>
+</div>
+
+<div class="menu" id="instructions">
+  <h1>YGGDRASIL</h1>
+  <div class="subtitle">The World Tree</div>
+  <p class="lore">
+    The great ash tree connects the Nine Realms.<br>
+    Collect the golden leaves of wisdom to nourish its roots.<br>
+    Beware the flames of Muspelheim that seek to burn its branches.
+  </p>
+  <p>Move your vessel to gather divine essence</p>
+  <p>Avoid the cursed flames of the fire giants</p>
+  <button class="start-btn" onclick="startGame()">BEGIN JOURNEY</button>
+</div>
+
+<div class="menu hidden" id="gameOver">
+  <h1>RAGNAROK</h1>
+  <div class="subtitle">The Tree Has Fallen</div>
+  <p>Realms Reached: <span id="finalLevel">Midgard</span></p>
+  <p>Essence Gathered: <span id="finalScore">0</span></p>
+  <button class="start-btn" onclick="restartGame()">REBIRTH</button>
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// Realms of Yggdrasil
+const realms = ["Midgard", "Alfheim", "Vanaheim", "Asgard", "Muspelheim", "Niflheim", "Jotunheim", "Svartalfheim", "Helheim"];
+
+let gameStarted = false;
+let gameOver = false;
+let score = 0;
+let realmIndex = 0;
+let treeHealth = 100;
+
+const basket = { x: 0, y: 0, width: 90, height: 55 };
+
+canvas.addEventListener("mousemove", e => {
+  basket.x = e.clientX - basket.width / 2;
+  basket.y = H - 130;
+});
+
+const items = [];
+const LEAF_COLORS = ["#ffd700", "#ffec8b", "#daa520", "#f0e68c", "#eee8aa"];
+
+function spawnItem() {
+  const isGood = Math.random() > 0.3;
+  
+  items.push({
+    x: Math.random() * (W - 30) + 15,
+    y: -20,
+    size: 15 + Math.random() * 10,
+    speed: 2.5 + Math.random() * 2 + realmIndex * 0.4,
+    isGood,
+    color: isGood ? LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)] : "#ff4500",
+    rotation: Math.random() * Math.PI * 2,
+    rotationSpeed: (Math.random() - 0.5) * 0.1
+  });
+}
+
+const particles = [];
+
+function spawnParticle(x, y, color) {
+  for (let i = 0; i < 10; i++) {
+    const angle = (i / 10) * Math.PI * 2;
+    const speed = 2 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      size: 3 + Math.random() * 4,
+      color,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.02
+    });
+  }
+}
+
+// Stars background
+const stars = [];
+for (let i = 0; i < 150; i++) {
+  stars.push({
+    x: Math.random() * 2000,
+    y: Math.random() * 1000,
+    size: Math.random() * 2,
+    twinkle: Math.random() * Math.PI * 2
+  });
+}
+
+let time = 0;
+
+function drawTree() {
+  const baseY = H - 30;
+  const treeX = W / 2;
+  
+  const scale = 1 + realmIndex * 0.12;
+  const trunkH = 100 * scale;
+  const trunkW = 40 * scale;
+  const canopyR = 80 * scale;
+  
+  // Roots (glowing)
+  ctx.strokeStyle = `rgba(139, 90, 43, ${0.3 + Math.sin(time) * 0.1})`;
+  ctx.lineWidth = 8;
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 5) * Math.PI - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(treeX, baseY);
+    ctx.quadraticCurveTo(
+      treeX + Math.cos(angle) * 60,
+      baseY + 40,
+      treeX + Math.cos(angle) * 100,
+      baseY + 60
+    );
+    ctx.stroke();
+  }
+  
+  // Trunk with golden veins
+  const trunkGradient = ctx.createLinearGradient(treeX - trunkW/2, 0, treeX + trunkW/2, 0);
+  trunkGradient.addColorStop(0, "#4a3520");
+  trunkGradient.addColorStop(0.3, "#6b4423");
+  trunkGradient.addColorStop(0.5, "#8b5a2b");
+  trunkGradient.addColorStop(0.7, "#6b4423");
+  trunkGradient.addColorStop(1, "#4a3520");
+  
+  ctx.fillStyle = trunkGradient;
+  ctx.beginPath();
+  ctx.moveTo(treeX - trunkW/2, baseY);
+  ctx.lineTo(treeX - trunkW/3, baseY - trunkH);
+  ctx.lineTo(treeX + trunkW/3, baseY - trunkH);
+  ctx.lineTo(treeX + trunkW/2, baseY);
+  ctx.fill();
+  
+  // Golden veins on trunk
+  ctx.strokeStyle = "rgba(255, 215, 0, 0.3)";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(treeX - 10 + i * 10, baseY);
+    ctx.lineTo(treeX - 5 + i * 5, baseY - trunkH);
+    ctx.stroke();
+  }
+  
+  // Canopy layers
+  const canopyY = baseY - trunkH;
+  
+  // Outer glow
+  const glowGradient = ctx.createRadialGradient(treeX, canopyY - canopyR * 0.3, 0, treeX, canopyY - canopyR * 0.3, canopyR * 1.5);
+  glowGradient.addColorStop(0, "rgba(255, 215, 0, 0.2)");
+  glowGradient.addColorStop(1, "transparent");
+  ctx.fillStyle = glowGradient;
+  ctx.beginPath();
+  ctx.arc(treeX, canopyY - canopyR * 0.3, canopyR * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Canopy
+  ctx.fillStyle = "#1a472a";
+  ctx.beginPath();
+  ctx.arc(treeX, canopyY - canopyR * 0.3, canopyR * 1.1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = "#228b22";
+  ctx.beginPath();
+  ctx.arc(treeX - canopyR * 0.4, canopyY, canopyR * 0.8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(treeX + canopyR * 0.4, canopyY, canopyR * 0.8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = "#32cd32";
+  ctx.beginPath();
+  ctx.arc(treeX, canopyY - canopyR * 0.1, canopyR * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Runes around tree (health indicator)
+  const runeRadius = canopyR * 1.3;
+  ctx.font = "20px serif";
+  const runes = "ᚠᚢᚦᚨᚱᚲ";
+  for (let i = 0; i < runes.length; i++) {
+    const angle = (i / runes.length) * Math.PI * 2 - Math.PI / 2 + time * 0.2;
+    const x = treeX + Math.cos(angle) * runeRadius;
+    const y = canopyY - canopyR * 0.3 + Math.sin(angle) * runeRadius;
+    
+    const runeHealth = (i / runes.length) < (treeHealth / 100);
+    ctx.fillStyle = runeHealth ? `rgba(255, 215, 0, ${0.5 + Math.sin(time * 2 + i) * 0.3})` : "rgba(100, 100, 100, 0.3)";
+    ctx.fillText(runes[i], x - 10, y + 7);
+  }
+}
+
+function drawBasket() {
+  // Norse-style vessel
+  ctx.fillStyle = "#8b7355";
+  ctx.beginPath();
+  ctx.moveTo(basket.x, basket.y);
+  ctx.lineTo(basket.x + 15, basket.y + basket.height);
+  ctx.lineTo(basket.x + basket.width - 15, basket.y + basket.height);
+  ctx.lineTo(basket.x + basket.width, basket.y);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Golden rim
+  ctx.strokeStyle = "#ffd700";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(basket.x - 5, basket.y);
+  ctx.lineTo(basket.x + basket.width + 5, basket.y);
+  ctx.stroke();
+  
+  // Norse pattern
+  ctx.strokeStyle = "#daa520";
+  ctx.lineWidth = 2;
+  for (let i = 1; i < 4; i++) {
+    const y = basket.y + (basket.height / 4) * i;
+    const shrink = i * 3;
+    ctx.beginPath();
+    ctx.moveTo(basket.x + shrink, y);
+    ctx.lineTo(basket.x + basket.width - shrink, y);
+    ctx.stroke();
+  }
+}
+
+function drawLeaf(x, y, size, rotation, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  
+  // Golden leaf
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.quadraticCurveTo(size, -size/2, size/2, size/2);
+  ctx.quadraticCurveTo(0, size, 0, size);
+  ctx.quadraticCurveTo(0, size, -size/2, size/2);
+  ctx.quadraticCurveTo(-size, -size/2, 0, -size);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  ctx.restore();
+}
+
+function drawFlame(x, y, size, rotation) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  
+  ctx.fillStyle = "#ff4500";
+  ctx.shadowColor = "#ff0000";
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.quadraticCurveTo(size, 0, 0, size);
+  ctx.quadraticCurveTo(-size, 0, 0, -size);
+  ctx.fill();
+  
+  ctx.fillStyle = "#ffd700";
+  ctx.beginPath();
+  ctx.moveTo(0, -size * 0.5);
+  ctx.quadraticCurveTo(size * 0.5, 0, 0, size * 0.6);
+  ctx.quadraticCurveTo(-size * 0.5, 0, 0, -size * 0.5);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  ctx.restore();
+}
+
+function drawBackground() {
+  // Night sky gradient
+  const gradient = ctx.createLinearGradient(0, 0, 0, H);
+  gradient.addColorStop(0, "#0a0a15");
+  gradient.addColorStop(0.5, "#0d1020");
+  gradient.addColorStop(1, "#1a1a2e");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Stars
+  stars.forEach(star => {
+    const twinkle = 0.3 + Math.sin(star.twinkle + time * 2) * 0.3;
+    ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
+    ctx.beginPath();
+    ctx.arc(star.x % W, star.y % H, star.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  // Ground (Midgard realm)
+  ctx.fillStyle = "#1a2f1a";
+  ctx.fillRect(0, H - 30, W, 30);
+  
+  // Ground pattern
+  ctx.fillStyle = "#0f200f";
+  for (let i = 0; i < W; i += 25) {
+    ctx.beginPath();
+    ctx.arc(i, H - 30, 18, Math.PI, 0);
+    ctx.fill();
+  }
+}
+
+function updateGame() {
+  if (!gameStarted || gameOver) return;
+  
+  if (Math.random() < 0.035 + realmIndex * 0.005) {
+    spawnItem();
+  }
+  
+  for (let i = items.length - 1; i >= 0; i--) {
+    const item = items[i];
+    item.y += item.speed;
+    item.rotation += item.rotationSpeed;
+    item.x += Math.sin(item.rotation) * 0.5;
+    
+    if (item.y + item.size > basket.y &&
+        item.y < basket.y + basket.height &&
+        item.x > basket.x &&
+        item.x < basket.x + basket.width) {
+      
+      if (item.isGood) {
+        score += 15;
+        treeHealth = Math.min(100, treeHealth + 3);
+        spawnParticle(item.x, item.y, item.color);
+      } else {
+        treeHealth -= 18;
+        spawnParticle(item.x, item.y, item.color);
+        if (treeHealth <= 0) endGame();
+      }
+      
+      items.splice(i, 1);
+      continue;
+    }
+    
+    if (item.y > H + 50) {
+      items.splice(i, 1);
+    }
+  }
+  
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.1;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+  
+  const newRealm = Math.min(Math.floor(score / 150), realms.length - 1);
+  if (newRealm > realmIndex) {
+    realmIndex = newRealm;
+    document.getElementById("treeLevel").textContent = realms[realmIndex];
+  }
+  
+  document.getElementById("scoreValue").textContent = score;
+}
+
+function draw() {
+  drawBackground();
+  
+  if (gameStarted && !gameOver) {
+    items.forEach(item => {
+      if (item.isGood) {
+        drawLeaf(item.x, item.y, item.size, item.rotation, item.color);
+      } else {
+        drawFlame(item.x, item.y, item.size, item.rotation);
+      }
+    });
+    
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    
+    drawBasket();
+  }
+  
+  drawTree();
+  updateGame();
+  time += 0.02;
+  requestAnimationFrame(draw);
+}
+
+function startGame() {
+  document.getElementById("instructions").classList.add("hidden");
+  gameStarted = true;
+  gameOver = false;
+  score = 0;
+  realmIndex = 0;
+  treeHealth = 100;
+  items.length = 0;
+  particles.length = 0;
+  document.getElementById("scoreValue").textContent = "0";
+  document.getElementById("treeLevel").textContent = realms[0];
+}
+
+function endGame() {
+  gameOver = true;
+  document.getElementById("finalLevel").textContent = realms[realmIndex];
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("gameOver").classList.remove("hidden");
+}
+
+function restartGame() {
+  document.getElementById("gameOver").classList.add("hidden");
+  startGame();
+}
+
+basket.x = W / 2 - basket.width / 2;
+basket.y = H - 130;
+
+draw();
+</script>
+
+</body>
+</html>

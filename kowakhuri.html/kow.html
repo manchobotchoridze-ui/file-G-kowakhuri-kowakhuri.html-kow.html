@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Olympus - Realm of the Gods</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Philosopher&display=swap');
+  
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0a12;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+  .title-link {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffd700;
+    text-decoration: none;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    padding: 15px 35px;
+    border: 2px solid #ffd700;
+    transition: all 0.4s ease;
+    z-index: 100;
+    background: rgba(10, 10, 18, 0.9);
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  .title-link:hover {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #0a0a12;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+    text-shadow: none;
+  }
+  .subtitle {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Philosopher', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 215, 0, 0.5);
+    letter-spacing: 4px;
+    z-index: 100;
+    font-style: italic;
+  }
+  
+  /* Portal dots - now celestial orbs */
+  .portal {
+    position: fixed;
+    bottom: 50px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.4s ease;
+    text-decoration: none;
+  }
+  .portal::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    opacity: 0.3;
+  }
+  .portal::after {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-shadow: 0 0 10px currentColor;
+  }
+  .portal:hover {
+    transform: scale(1.4);
+  }
+  .portal:hover::after {
+    opacity: 1;
+  }
+  
+  /* Yggdrasil - Tree of Life */
+  .portal-yggdrasil {
+    left: calc(50% - 100px);
+    background: radial-gradient(circle, #50C878, #228B22);
+    color: #50C878;
+    box-shadow: 0 0 20px rgba(80, 200, 120, 0.5);
+  }
+  .portal-yggdrasil::after {
+    content: "Yggdrasil";
+  }
+  .portal-yggdrasil:hover {
+    box-shadow: 0 0 40px rgba(80, 200, 120, 0.8);
+  }
+  
+  /* Zeus - Thunder God */
+  .portal-zeus {
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, #87CEEB, #4169E1);
+    color: #87CEEB;
+    box-shadow: 0 0 20px rgba(135, 206, 235, 0.5);
+    animation: lightning 3s infinite;
+  }
+  .portal-zeus::after {
+    content: "Zeus Arena";
+  }
+  .portal-zeus:hover {
+    transform: translateX(-50%) scale(1.4);
+    box-shadow: 0 0 40px rgba(135, 206, 235, 0.8);
+  }
+  @keyframes lightning {
+    0%, 90%, 100% { box-shadow: 0 0 20px rgba(135, 206, 235, 0.5); }
+    95% { box-shadow: 0 0 50px rgba(255, 255, 255, 1), 0 0 80px rgba(135, 206, 235, 1); }
+  }
+  
+  /* Dionysus - God of Wine */
+  .portal-dionysus {
+    left: calc(50% + 100px);
+    background: radial-gradient(circle, #9B59B6, #6B2C91);
+    color: #9B59B6;
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
+  }
+  .portal-dionysus::after {
+    content: "Chalice";
+  }
+  .portal-dionysus:hover {
+    box-shadow: 0 0 40px rgba(155, 89, 182, 0.8);
+  }
+</style>
+</head>
+<body>
+
+<a href="logo.html" class="title-link">Sacred Symbols</a>
+<div class="subtitle">Gateway to the Divine</div>
+<a href="treegame.html" class="portal portal-yggdrasil"></a>
+<a href="spacegame.html" class="portal portal-zeus"></a>
+<a href="mug.html" class="portal portal-dionysus"></a>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let W, H, cx, cy;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2;
+  cy = H / 2;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// Mouse tracking
+let mouse = { x: -1000, y: -1000 };
+const EXPLOSION_RADIUS = 150;
+const EXPLOSION_FORCE = 25;
+
+canvas.addEventListener("mousemove", e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+canvas.addEventListener("mouseleave", () => {
+  mouse.x = -1000;
+  mouse.y = -1000;
+});
+
+// Celestial Vortex parameters
+const NUM_ARMS = 3;
+const PARTICLES_PER_ARM = 500;
+const ARM_SPREAD = 0.5;
+const ROTATION_SPEED = 0.002;
+
+let rotation = 0;
+let time = 0;
+
+// Stars background
+const stars = [];
+for (let i = 0; i < 300; i++) {
+  stars.push({
+    x: Math.random() * 2000,
+    y: Math.random() * 2000,
+    size: Math.random() * 2,
+    twinkle: Math.random() * Math.PI * 2
+  });
+}
+
+// Create particles with physics
+const particles = [];
+
+function createParticle(baseDistance, baseAngle, spreadX, spreadY, size, opacity, speedMult, hue) {
+  return {
+    baseDistance,
+    baseAngle,
+    spreadX,
+    spreadY,
+    size,
+    opacity,
+    speedMult,
+    hue,
+    vx: 0,
+    vy: 0,
+    offsetX: 0,
+    offsetY: 0
+  };
+}
+
+// Spiral arms - celestial colors
+for (let arm = 0; arm < NUM_ARMS; arm++) {
+  const armAngle = (arm / NUM_ARMS) * Math.PI * 2;
+  const armHue = arm === 0 ? 45 : arm === 1 ? 270 : 200; // Gold, Purple, Blue
+  
+  for (let i = 0; i < PARTICLES_PER_ARM; i++) {
+    const t = i / PARTICLES_PER_ARM;
+    const distance = 30 + t * Math.min(W, H) * 0.38;
+    const spiralAngle = armAngle + t * 2.5 * Math.PI;
+    
+    const spread = (Math.random() - 0.5) * ARM_SPREAD * distance * 0.3;
+    const spreadAngle = spiralAngle + Math.PI / 2;
+    
+    let size = 1 + Math.random() * 2;
+    if (Math.random() < 0.08) size = 2 + Math.random() * 3;
+    
+    const opacity = 0.4 + (1 - t) * 0.6;
+    
+    particles.push(createParticle(
+      distance,
+      spiralAngle,
+      Math.cos(spreadAngle) * spread,
+      Math.sin(spreadAngle) * spread,
+      size,
+      opacity,
+      0.8 + Math.random() * 0.4,
+      armHue + (Math.random() - 0.5) * 30
+    ));
+  }
+}
+
+// Central divine cluster
+for (let i = 0; i < 250; i++) {
+  const angle = Math.random() * Math.PI * 2;
+  const distance = Math.random() * 60 * Math.sqrt(Math.random());
+  
+  particles.push(createParticle(
+    distance,
+    angle,
+    0,
+    0,
+    0.5 + Math.random() * 2.5,
+    0.6 + Math.random() * 0.4,
+    0.3 + Math.random() * 0.4,
+    45 + Math.random() * 20 // Golden center
+  ));
+}
+
+// Outer ethereal particles
+for (let i = 0; i < 150; i++) {
+  const angle = Math.random() * Math.PI * 2;
+  const distance = 120 + Math.random() * Math.min(W, H) * 0.3;
+  
+  particles.push(createParticle(
+    distance,
+    angle,
+    (Math.random() - 0.5) * 50,
+    (Math.random() - 0.5) * 50,
+    0.5 + Math.random() * 1.5,
+    0.1 + Math.random() * 0.2,
+    0.5 + Math.random() * 0.8,
+    200 + Math.random() * 100 // Blue to purple
+  ));
+}
+
+function drawStars() {
+  stars.forEach(star => {
+    const twinkle = 0.3 + Math.sin(star.twinkle + time * 2) * 0.3;
+    ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
+    ctx.beginPath();
+    ctx.arc(star.x % W, star.y % H, star.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function draw() {
+  // Deep cosmic background
+  const bgGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+  bgGradient.addColorStop(0, "#1a1025");
+  bgGradient.addColorStop(0.5, "#0d0d18");
+  bgGradient.addColorStop(1, "#050508");
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Draw stars
+  drawStars();
+  
+  // Update and draw all particles
+  particles.forEach(p => {
+    const distanceFactor = Math.max(0.1, 1 - p.baseDistance / (Math.min(W, H) * 0.4));
+    const particleRotation = rotation * p.speedMult * (0.5 + distanceFactor * 1.5);
+    const angle = p.baseAngle + particleRotation;
+    
+    const targetX = cx + Math.cos(angle) * p.baseDistance + p.spreadX;
+    const targetY = cy + Math.sin(angle) * p.baseDistance + p.spreadY;
+    
+    const actualX = targetX + p.offsetX;
+    const actualY = targetY + p.offsetY;
+    
+    const dx = actualX - mouse.x;
+    const dy = actualY - mouse.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < EXPLOSION_RADIUS && dist > 0) {
+      const force = (1 - dist / EXPLOSION_RADIUS) * EXPLOSION_FORCE;
+      p.vx += (dx / dist) * force;
+      p.vy += (dy / dist) * force;
+    }
+    
+    p.offsetX += p.vx;
+    p.offsetY += p.vy;
+    p.vx *= 0.92;
+    p.vy *= 0.92;
+    p.offsetX *= 0.96;
+    p.offsetY *= 0.96;
+    
+    const finalX = targetX + p.offsetX;
+    const finalY = targetY + p.offsetY;
+    
+    // Draw particle with celestial glow
+    ctx.beginPath();
+    ctx.arc(finalX, finalY, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue}, 80%, 65%, ${p.opacity})`;
+    ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.5)`;
+    ctx.shadowBlur = p.size * 2;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+  
+  // Draw central divine eye
+  const eyeGradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 40);
+  eyeGradient.addColorStop(0, "rgba(255, 215, 0, 1)");
+  eyeGradient.addColorStop(0.3, "rgba(255, 180, 0, 0.8)");
+  eyeGradient.addColorStop(0.6, "rgba(200, 100, 50, 0.4)");
+  eyeGradient.addColorStop(1, "rgba(100, 50, 150, 0)");
+  
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+  ctx.fillStyle = eyeGradient;
+  ctx.fill();
+  
+  // Inner bright core
+  ctx.beginPath();
+  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = "#fff";
+  ctx.shadowColor = "#ffd700";
+  ctx.shadowBlur = 30;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  rotation += ROTATION_SPEED;
+  time += 0.01;
+  
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+</body>
+</html>
